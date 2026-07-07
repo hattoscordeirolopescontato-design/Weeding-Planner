@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+@theme {
+  /* Dourados / bronze (acento) */
+  --color-terracota: #9c6c3c;
+  --color-terracota-dark: #7a521e;
+  --color-vinho: #9c6c3c;
+  --color-bronze: #9c6c3c;
+  --color-gold: #d8b478;
+  --color-champagne: #fcefc0;
+  --color-bege: #d8b478;
+  /* Tinta / textos */
+  --color-cocoa: #2b2620;
+  --color-ink: #2b2620;
+  --color-ink-soft: #33302e;
+  --color-muted: #8a7b63;
+  --color-muted-2: #b7a98c;
+
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Nunito Sans", "DM Sans", system-ui, sans-serif;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  background: #f6f1ec;
+  color: #33302e;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.label-cap {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+  color: #8a7b63;
+}
+
+/* ----------------------------------------------------------------------- */
+/* Liquid glass (tema dourado claro)                                        */
+/* ----------------------------------------------------------------------- */
+.glass {
+  background: rgba(255, 255, 255, 0.58);
+  backdrop-filter: blur(22px) saturate(170%);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 18px;
+  box-shadow:
+    0 10px 30px rgba(156, 108, 60, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.glass-soft {
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+}
+
+.glass-input {
+  width: 100%;
+  background: #ffffff;
+  border: 1.5px solid #e4d6bc;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.9rem;
+  color: #2b2620;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.glass-input::placeholder {
+  color: #b7a98c;
+}
+.glass-input:focus {
+  outline: none;
+  border-color: #b49054;
+  box-shadow: 0 0 0 3px rgba(180, 144, 84, 0.18);
+}
+.glass-input option {
+  color: #2b2620;
+  background: #ffffff;
+}
+
+::selection {
+  background: rgba(216, 180, 120, 0.4);
+}
+
+/* Botão dourado (CTA principal) */
+.btn-gold {
+  background: linear-gradient(135deg, #fcefc0 0%, #d8b478 35%, #b49054 65%, #9c6c3c 100%);
+  color: #2b2620;
+}
+/* Chip de ícone dourado (cards de métrica) */
+.gold-chip {
+  background: linear-gradient(135deg, rgba(252, 239, 192, 0.5), rgba(216, 180, 120, 0.28));
+  border: 1px solid rgba(216, 180, 120, 0.35);
+}
+
+/* ----------------------------------------------------------------------- */
+/* Animações (orbs, entrada, pulso)                                         */
+/* ----------------------------------------------------------------------- */
+@keyframes wpFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, -40px) scale(1.08); }
+}
+@keyframes wpFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-40px, 30px) scale(1.05); }
+}
+@keyframes wpFloat3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, 25px) scale(1.1); }
+}
+@keyframes wpRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes wpPulseRing {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(216, 180, 120, 0.35); }
+  50% { box-shadow: 0 0 0 10px rgba(216, 180, 120, 0); }
+}
+@keyframes wpShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; }
+}
