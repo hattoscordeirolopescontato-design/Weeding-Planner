@@ -1,23 +1,42 @@
-# 💍 NósCasamos — Planejamento de Casamento
+# 💍 Wedding Planner — Planejamento de Casamento
 
 Plataforma multi-casais (SaaS) para organizar o casamento: fornecedores, local,
-convidados e votos secretos protegidos por senha.
+cerimônia, convidados, agenda, checklist, cartório, lua de mel, presentes e votos
+secretos protegidos por senha.
 
 ## Stack
 
 - **Next.js 16** (App Router, TypeScript) + **Tailwind CSS 4**
-- **Prisma 7** + **SQLite** (via driver adapter `better-sqlite3`) em desenvolvimento
-- **Autenticação própria**: sessão JWT (`jose`) em cookie `httpOnly` + Data Access Layer
-- **Votos cifrados em repouso**: AES-256-GCM com chave derivada da senha (scrypt)
+- **Supabase** — banco **Postgres gerenciado** + **Auth** + **RLS** (Row Level Security),
+  acessado direto pelo client JS (`@supabase/ssr` e `@supabase/supabase-js`)
+- **Autenticação: Supabase Auth** — e-mail/senha e **Google OAuth** (PKCE, via rota
+  `/auth/callback`); sessão em cookies gerida pelo middleware `proxy.ts`
+- **Stripe** — assinatura (integração presente; atualmente fora do fluxo de cadastro)
+- **Votos cifrados em repouso**: AES-256-GCM com chave derivada da senha (via `node:crypto`)
 
 ## Como rodar
 
 ```bash
 npm install
-# crie o .env a partir do exemplo e gere um SESSION_SECRET
+# crie o .env com as chaves do Supabase/Stripe (veja SETUP.md)
 copy .env.example .env
-npx prisma migrate dev   # cria o banco e aplica as migrações
 npm run dev              # http://localhost:3000
+```
+
+O banco vive no Supabase. Para criar as tabelas, rode o conteúdo de
+[`supabase/schema.sql`](./supabase/schema.sql) no **SQL Editor** do seu projeto
+Supabase. Passo a passo completo em [`SETUP.md`](./SETUP.md).
+
+Variáveis de ambiente (Next.js — prefixo `NEXT_PUBLIC_` para as expostas ao browser):
+
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=      # chave publishable do Supabase
+SUPABASE_SERVICE_KEY=              # chave secret (somente servidor)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_SECRET_KEY=
+NEXT_PUBLIC_STRIPE_PRICE_ID=
+STRIPE_WEBHOOK_SECRET=
 ```
 
 ## Estrutura
@@ -25,38 +44,41 @@ npm run dev              # http://localhost:3000
 ```
 src/
   app/
-    (auth)/login | register      # páginas de autenticação
-    actions/auth.ts | wedding.ts # server actions de conta e casamento
-    onboarding/                  # criação do primeiro casamento
+    login | (auth)/cadastro | (auth)/recuperar-senha   # autenticação (Supabase)
+    completar-perfil/            # dados do casal após cadastro
+    auth/callback/route.ts       # troca o code do OAuth (Google) pela sessão
+    assinar/                     # página de assinatura (Stripe)
+    api/stripe/                  # checkout, portal, success, webhook
     dashboard/
-      page.tsx                   # visão geral (indicadores)
-      vendors | venues | guests  # CRUD de planejamento (page + form + actions)
-      vows/                      # votos cifrados (page + form + card)
-      settings/                  # dados do casamento e conta
-  components/                    # UI reutilizável (inputs, botão, nav)
+      page.tsx + overview-client # visão geral (indicadores + contagem regressiva)
+      vendors | venues | ceremony | guests | agenda | checklist
+      cartorio | honeymoon | gifts | vows | settings     # módulos (CRUD no Supabase)
+  components/                    # UI reutilizável (inputs, botões, nav, countdown)
   lib/
-    prisma.ts                    # client Prisma (singleton + adapter)
-    session.ts                   # criar/ler/apagar sessão (JWT)
-    dal.ts                       # verifySession, getCurrentUser, getActiveWedding
-    vows-crypto.ts               # cifragem AES-256-GCM dos votos
-    validation.ts                # schemas zod + estado de formulário
-  proxy.ts                       # proteção de rotas (novo "middleware" do Next 16)
-prisma/
-  schema.prisma                  # modelos: User, Wedding, Vendor, Venue, Guest, Vow
-  migrations/
+    supabase/                    # clients (client, server, admin) + hooks
+    vows-crypto.ts               # cifragem AES-256-GCM dos votos (node:crypto)
+    finance.ts | format.ts | validation.ts | ...        # utilidades
+  proxy.ts                       # middleware do Next 16 (renova sessão + protege rotas)
+supabase/
+  schema.sql                     # cria tabelas + RLS no Postgres do Supabase
+  alter_convidados_tipo_pagamento.sql
 ```
 
 ## Modelo de dados
 
-`User` ⇄ `WeddingMember` ⇄ `Wedding` (N:N — permite os dois noivos no mesmo
-casamento). Cada `Wedding` tem `Vendor`, `Venue`, `Guest` e `Vow`. Cada `Vow`
-pertence a um autor e guarda apenas o texto cifrado.
+Tabelas no Postgres do Supabase, todas com **RLS** por `user_id` (cada casal só
+enxerga os próprios dados): `profiles`, `fornecedores`, `local`, `convidados`,
+`agenda`, `checklist`, `cerimonia`, `cartorio`, `lua_de_mel`, `presentes`,
+`votos`, entre outras. Os `votos` guardam apenas o texto cifrado (AES-256-GCM).
+
+## Deploy
+
+Pensado para a **Vercel** (o Supabase é externo e persistente, então funciona bem
+em serverless). Configure as variáveis de ambiente acima no projeto da Vercel.
 
 ## Próximos passos (ideias)
 
 - Página pública para convidados confirmarem presença (RSVP)
 - Convite do(a) parceiro(a) para o mesmo casamento
-- Checklist/cronograma de tarefas e controle de orçamento detalhado
 - Upload de fotos e inspirações; exportar lista de convidados
-- Migrar para PostgreSQL (Neon/Supabase) e deploy na Vercel
-```
+- Ativar o fluxo de pagamento (Stripe) no cadastro
