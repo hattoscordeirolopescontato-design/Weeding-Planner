@@ -11,7 +11,8 @@ secretos protegidos por senha.
   acessado direto pelo client JS (`@supabase/ssr` e `@supabase/supabase-js`)
 - **Autenticação: Supabase Auth** — e-mail/senha e **Google OAuth** (PKCE, via rota
   `/auth/callback`); sessão em cookies gerida pelo middleware `proxy.ts`
-- **Stripe** — assinatura (integração presente; atualmente fora do fluxo de cadastro)
+- **Pagamento**: nenhum processador ativo no momento (o acesso está liberado sem
+  cobrança). Integração com **Pagar.me** planejada para depois.
 - **Votos cifrados em repouso**: AES-256-GCM com chave derivada da senha (via `node:crypto`)
 
 ## Como rodar
@@ -33,11 +34,10 @@ Variáveis de ambiente (Next.js — prefixo `NEXT_PUBLIC_` para as expostas ao b
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=      # chave publishable do Supabase
 SUPABASE_SERVICE_KEY=              # chave secret (somente servidor)
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-STRIPE_SECRET_KEY=
-NEXT_PUBLIC_STRIPE_PRICE_ID=
-STRIPE_WEBHOOK_SECRET=
 ```
+
+> Pagamento ainda não configurado — não há variáveis de processador de pagamento
+> no momento (Pagar.me será adicionado depois).
 
 ## Estrutura
 
@@ -47,8 +47,7 @@ src/
     login | (auth)/cadastro | (auth)/recuperar-senha   # autenticação (Supabase)
     completar-perfil/            # dados do casal após cadastro
     auth/callback/route.ts       # troca o code do OAuth (Google) pela sessão
-    assinar/                     # página de assinatura (Stripe)
-    api/stripe/                  # checkout, portal, success, webhook
+    assinar/                     # tela "assinatura em breve" (pagamento desativado)
     dashboard/
       page.tsx + overview-client # visão geral (indicadores + contagem regressiva)
       vendors | venues | ceremony | guests | agenda | checklist

@@ -1,39 +1,9 @@
-"use client";
+import Link from "next/link";
+import { Card } from "@/components/ui";
 
-import { useState } from "react";
-import { Check } from "lucide-react";
-import { Card, Button } from "@/components/ui";
-import { LogoutButton } from "@/components/logout-button";
-
-const BENEFITS = [
-  "Todos os módulos (fornecedores, local, convidados, agenda, checklist, presentes, lua de mel, cerimônia, cartório e votos)",
-  "Armazenamento de comprovantes",
-  "Acesso em qualquer dispositivo",
-  "Suporte por e-mail",
-];
-
+// Pagamento desativado por enquanto. O processador (Pagar.me) será integrado
+// depois; até lá o app fica liberado sem cobrança.
 export default function AssinarPage() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  async function assinar() {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        setError(data.error || "Não foi possível iniciar o pagamento.");
-        setLoading(false);
-      }
-    } catch {
-      setError("Falha de conexão. Tente novamente.");
-      setLoading(false);
-    }
-  }
-
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
       {/* Orbs ambiente (liquid glass) */}
@@ -56,10 +26,6 @@ export default function AssinarPage() {
         }}
       />
 
-      <div className="absolute right-4 top-4 z-[2]">
-        <LogoutButton className="text-sm font-bold text-[#8a7b63] hover:text-[#9C6C3C]" />
-      </div>
-
       <div className="relative z-[1] mb-6 flex items-center gap-2.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -72,40 +38,22 @@ export default function AssinarPage() {
           Wedding <span className="text-[#9C6C3C]">Planner</span>
         </span>
       </div>
-      <p className="relative z-[1] mb-8 text-[#8a7b63]">Planeje seu casamento com tranquilidade</p>
 
-      <Card className="relative z-[1] w-full max-w-md">
-        <div className="text-center">
-          <h2 className="font-display text-xl font-bold text-[#2B2620]">
-            Plano Completo
-          </h2>
-          <p className="font-display mt-2 text-4xl font-bold text-[#9C6C3C]">
-            R$ 35,00
-            <span className="text-base font-normal text-[#8a7b63]">/mês</span>
-          </p>
-        </div>
-
-        <ul className="mt-6 flex flex-col gap-3">
-          {BENEFITS.map((b) => (
-            <li key={b} className="flex items-start gap-2 text-sm text-[#2B2620]">
-              <Check size={18} className="mt-0.5 shrink-0 text-[#9C6C3C]" />
-              {b}
-            </li>
-          ))}
-        </ul>
-
-        {error && (
-          <div className="mt-4 rounded-lg bg-rose-500/12 px-3 py-2 text-sm text-rose-700">
-            {error}
-          </div>
-        )}
-
-        <Button onClick={assinar} disabled={loading} className="mt-6 w-full">
-          {loading ? "Redirecionando..." : "Assinar agora"}
-        </Button>
-        <p className="mt-3 text-center text-xs text-[#b7a98c]">
-          Pagamento seguro via Stripe. Cancele quando quiser.
+      <Card className="relative z-[1] w-full max-w-md text-center">
+        <h2 className="font-display text-xl font-bold text-[#2B2620]">
+          Assinatura em breve
+        </h2>
+        <p className="mt-3 text-sm leading-relaxed text-[#8a7b63]">
+          Estamos finalizando o meio de pagamento. Enquanto isso, o Wedding Planner
+          está <strong className="text-[#9C6C3C]">liberado gratuitamente</strong> —
+          você pode usar todas as funcionalidades normalmente.
         </p>
+        <Link
+          href="/dashboard"
+          className="btn-gold mt-6 inline-flex rounded-xl px-6 py-3 text-sm font-black shadow-[0_8px_20px_rgba(156,108,60,0.24)] transition hover:brightness-[1.03]"
+        >
+          Ir para o painel
+        </Link>
       </Card>
     </main>
   );
