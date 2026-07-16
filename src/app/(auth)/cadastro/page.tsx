@@ -7,8 +7,6 @@ import { createClient } from "@/lib/supabase/client";
 import {
   GoldAuthShell,
   GoldButton,
-  GoogleButton,
-  OrDivider,
   authInput,
   authLabel,
   serifStyle,
@@ -51,21 +49,6 @@ export default function CadastroPage() {
     }
     router.push("/completar-perfil");
     router.refresh();
-  }
-
-  async function google() {
-    setError("");
-    const sb = createClient();
-    const { error } = await sb.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo:
-          typeof window !== "undefined"
-            ? `${window.location.origin}/auth/callback`
-            : undefined,
-      },
-    });
-    if (error) setError(error.message);
   }
 
   return (
@@ -144,9 +127,6 @@ export default function CadastroPage() {
           {loading ? "Criando..." : "Criar conta"}
         </GoldButton>
       </form>
-
-      <OrDivider />
-      <GoogleButton onClick={google} label="Continuar com Google" />
 
       <div className="mt-8 text-center text-sm text-[#6B5F4F]">
         Já tem uma conta?{" "}

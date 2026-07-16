@@ -7,8 +7,6 @@ import { createClient } from "@/lib/supabase/client";
 import {
   GoldAuthShell,
   GoldButton,
-  GoogleButton,
-  OrDivider,
   authInput,
   authLabel,
   authLink,
@@ -39,19 +37,6 @@ export default function LoginPage() {
     }
     router.push("/dashboard");
     router.refresh();
-  }
-
-  async function google() {
-    setError("");
-    const sb = createClient();
-    const { error } = await sb.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo:
-          typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined,
-      },
-    });
-    if (error) setError(error.message);
   }
 
   return (
@@ -122,9 +107,6 @@ export default function LoginPage() {
           {loading ? "Entrando..." : "Entrar"}
         </GoldButton>
       </form>
-
-      <OrDivider />
-      <GoogleButton onClick={google} label="Continuar com Google" />
 
       <div className="mt-8 text-center text-sm text-[#6B5F4F]">
         Ainda não tem uma conta?{" "}

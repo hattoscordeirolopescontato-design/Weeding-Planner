@@ -9,8 +9,8 @@ secretos protegidos por senha.
 - **Next.js 16** (App Router, TypeScript) + **Tailwind CSS 4**
 - **Supabase** — banco **Postgres gerenciado** + **Auth** + **RLS** (Row Level Security),
   acessado direto pelo client JS (`@supabase/ssr` e `@supabase/supabase-js`)
-- **Autenticação: Supabase Auth** — e-mail/senha e **Google OAuth** (PKCE, via rota
-  `/auth/callback`); sessão em cookies gerida pelo middleware `proxy.ts`
+- **Autenticação: Supabase Auth** — e-mail/senha; sessão em cookies gerida pelo
+  middleware `proxy.ts`
 - **Pagamento**: nenhum processador ativo no momento (o acesso está liberado sem
   cobrança). Integração com **Pagar.me** planejada para depois.
 - **Votos cifrados em repouso**: AES-256-GCM com chave derivada da senha (via `node:crypto`)
@@ -46,7 +46,6 @@ src/
   app/
     login | (auth)/cadastro | (auth)/recuperar-senha   # autenticação (Supabase)
     completar-perfil/            # dados do casal após cadastro
-    auth/callback/route.ts       # troca o code do OAuth (Google) pela sessão
     assinar/                     # tela "assinatura em breve" (pagamento desativado)
     dashboard/
       page.tsx + overview-client # visão geral (indicadores + contagem regressiva)

@@ -1,6 +1,9 @@
-# Setup — Casamento Sem Estresse
+# Setup — Wedding Planner
 
-Guia rápido para rodar o app com Supabase (auth + banco) e Stripe (pagamento).
+Guia rápido para rodar o app com Supabase (auth + banco).
+
+> Pagamento ainda não está configurado — não há processador ativo no momento. O app
+> funciona com **acesso liberado** (a integração com o Pagar.me virá depois).
 
 ---
 
@@ -8,28 +11,28 @@ Guia rápido para rodar o app com Supabase (auth + banco) e Stripe (pagamento).
 
 - Node.js 20+ e npm
 - Conta no [Supabase](https://supabase.com) (projeto já criado)
-- Conta no [Stripe](https://stripe.com) em modo de teste
 - Dependências instaladas: `npm install`
 
 ---
 
 ## 2. Variáveis de ambiente (`.env`)
 
-O arquivo `.env` já existe na raiz (e está no `.gitignore` — **nunca suba ao GitHub**). Confira que tem:
+O arquivo `.env` fica na raiz (e está no `.gitignore` — **nunca suba ao GitHub**). Confira que tem:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://krfbpbfscughhbuimmgd.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...        # chave "anon public" do Supabase
-SUPABASE_SERVICE_KEY=sb_secret_...                      # service role (somente servidor)
-
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_STRIPE_PRICE_ID=price_...                   # preço do Plano Completo (assinatura)
-STRIPE_WEBHOOK_SECRET=                                  # preencher no passo 5
+NEXT_PUBLIC_SUPABASE_URL=https://SEU-PROJETO.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...        # chave publishable do Supabase
+SUPABASE_SERVICE_KEY=sb_secret_...                      # chave secret (só servidor) — opcional
 ```
+
+- As duas primeiras (`NEXT_PUBLIC_*`) são **obrigatórias** e vão para o navegador — quem protege os dados é o RLS.
+- `SUPABASE_SERVICE_KEY` é secreta (só servidor) e **atualmente não é usada** por nenhuma parte do app; pode deixar de fora se quiser.
 
 > Observação: este projeto é **Next.js**, então as variáveis usam o prefixo `NEXT_PUBLIC_`
 > (e não `VITE_`). As que **não** têm `NEXT_PUBLIC_` ficam só no servidor.
+>
+> Onde pegar os valores: Supabase → **Project Settings → API** (Project URL) e **API keys**
+> (chaves publishable/secret).
 
 ---
 
@@ -40,50 +43,33 @@ Sem este passo, login/cadastro e os módulos não funcionam (as tabelas não exi
 1. Supabase → seu projeto → **SQL Editor** → **New query**.
 2. Cole TODO o conteúdo de [`supabase/schema.sql`](./supabase/schema.sql).
 3. Clique em **Run**.
+4. Se a tabela `convidados` já existia de antes, rode também
+   [`supabase/alter_convidados_tipo_pagamento.sql`](./supabase/alter_convidados_tipo_pagamento.sql).
 
-Isso cria as tabelas (`profiles`, `subscriptions`, `fornecedores`, `local`, `convidados`,
-`agenda`, `checklist`, `presentes`, `presentes_config`, `lua_de_mel`, `cerimonia`,
-`cartorio`, `votos`, etc.) com **Row Level Security** — cada usuário só enxerga os
-próprios dados.
+Isso cria as tabelas (`profiles`, `fornecedores`, `local`, `convidados`, `agenda`,
+`checklist`, `presentes`, `presentes_config`, `lua_de_mel`, `cerimonia`, `cartorio`,
+`votos`, etc.) com **Row Level Security** — cada usuário só enxerga os próprios dados.
 
 ---
 
-## 4. Autenticação (Supabase) — recomendado para testar
+## 4. Autenticação (Supabase)
 
-Para conseguir logar logo após o cadastro (sem precisar confirmar e-mail):
+**E-mail/senha (recomendado para testar):** para logar logo após o cadastro sem confirmar e-mail:
 
 - Supabase → **Authentication** → **Providers** → **Email** → desligar **"Confirm email"**.
 
 Com a confirmação ligada, o usuário precisa clicar no link enviado por e-mail antes de logar.
 A tela **"Esqueci minha senha"** usa o envio de e-mail do próprio Supabase.
 
+O login é somente **e-mail/senha** — não há OAuth (Google) configurado.
+
 ---
 
-## 5. Stripe (pagamento)
+## 5. Pagamento
 
-O fluxo de assinatura já funciona **sem** o webhook (a assinatura é ativada no retorno do
-checkout). O webhook só é necessário para refletir **renovações e cancelamentos** feitos
-fora do app.
-
-**Webhook local (opcional):**
-
-1. Instale a [Stripe CLI](https://stripe.com/docs/stripe-cli) e faça login: `stripe login`.
-2. Rode:
-   ```
-   stripe listen --forward-to localhost:3000/api/stripe/webhook
-   ```
-3. Copie o segredo exibido (`whsec_...`) e cole em `STRIPE_WEBHOOK_SECRET` no `.env`.
-4. Reinicie o `npm run dev`.
-
-**Cartões de teste (modo teste do Stripe):**
-
-| Cartão | Número | Resultado |
-|---|---|---|
-| Sucesso | `4242 4242 4242 4242` | Pagamento aprovado |
-| Recusado | `4000 0000 0000 0002` | Cartão recusado |
-| Exige autenticação (3DS) | `4000 0025 0000 3155` | Pede confirmação extra |
-
-Validade: qualquer data futura · CVC: 3 dígitos quaisquer · CEP: qualquer.
+Não há processador de pagamento ativo. As telas de assinatura mostram **"em breve"** e o
+acesso ao app fica **liberado** para todos os usuários. A integração com o **Pagar.me** será
+feita futuramente. Nenhuma variável de ambiente de pagamento é necessária.
 
 ---
 
@@ -97,11 +83,9 @@ npm run dev
 - Rede (celular na mesma Wi-Fi): http://SEU-IP:3000
 
 **Fluxo completo:**
-1. Clique em **Começar agora** (vai para `/cadastro`) → informe **e-mail e senha**.
-2. Você é levado para `/assinar` → **Assinar agora** → Stripe Checkout.
-3. Pague com o cartão de teste `4242 4242 4242 4242`.
-4. Após o pagamento, preencha os **dados do casal** (nomes e data) em `/completar-perfil`.
-5. Acesse o `/dashboard` com a assinatura ativa. Pronto para usar todos os módulos.
+1. Clique em **Começar agora** / **Criar conta** (vai para `/cadastro`) → informe **e-mail e senha**.
+2. Preencha os **dados do casal** (nomes e data) em `/completar-perfil`.
+3. Acesse o `/dashboard` e use todos os módulos. Nenhum pagamento é exigido.
 
 ---
 
@@ -120,10 +104,49 @@ npm run start
 |---|---|---|
 | Erro ao logar/cadastrar | SQL não rodado | Rode `supabase/schema.sql` (passo 3) |
 | "Email not confirmed" | Confirmação de e-mail ligada | Desligue em Auth → Providers → Email (passo 4) |
-| Loop entre `/login` e `/dashboard` | Sessão sem assinatura | Conclua o pagamento em `/assinar` |
-| Checkout não abre | `STRIPE_SECRET_KEY`/`PRICE_ID` errados | Confira o `.env` |
-| Assinatura não atualiza após cancelar no Stripe | Webhook não configurado | Faça o passo 5 |
+| Coluna `tipo_pagamento` não existe | ALTER não rodado | Rode `supabase/alter_convidados_tipo_pagamento.sql` (passo 3) |
 | Dados não salvam | RLS / usuário não autenticado | Confirme login e que o SQL criou as policies |
+
+---
+
+## 9. APIs e integrações
+
+A **única integração externa é o Supabase** (auth + banco), consumido direto pelos SDKs
+`@supabase/supabase-js` e `@supabase/ssr`. Não há API REST própria do app. **Não há API de
+pagamento ativa** (Stripe removido; Pagar.me será integrado depois).
+
+### Clients Supabase (`src/lib/supabase/`)
+| Client | Função | Chave | Uso |
+|---|---|---|---|
+| `client.ts` | `createBrowserClient(url, key)` | publishable | componentes client |
+| `server.ts` | `createServerClient(url, key, { cookies })` | publishable | Server Components / Route Handlers / middleware |
+| `admin.ts` | `createClient(url, key)` (ignora RLS) | **secret** | **órfão** — sem uso atual |
+
+### Supabase Auth API (métodos usados)
+| Método | Onde | Para quê |
+|---|---|---|
+| `auth.signUp({ email, password })` | `(auth)/cadastro` | cadastro e-mail/senha |
+| `auth.signInWithPassword({ email, password })` | `login` | login e-mail/senha |
+| `auth.getUser()` | server e client | usuário autenticado atual |
+| `auth.resetPasswordForEmail(email, { redirectTo })` | `recuperar-senha` | recuperação de senha |
+| `auth.signOut()` | `logout-button` | logout |
+
+### Supabase Data API (PostgREST via `supabase.from(table)…`)
+CRUD sempre filtrado por **RLS** (`auth.uid() = user_id`). Padrões usados:
+- `.select("*" | "campos")`, `.eq(...)`, `.order(...)`, `.maybeSingle()`, `.single()`
+- `.insert(row | rows[])` — sempre injetando `user_id` (inclui insert **em lote** na importação CSV)
+- `.update(values).eq("id", id)`
+- `.upsert(payload, { onConflict: "user_id" })` — tabelas "single" (uma linha por usuário)
+- `.delete().eq("id", id)`
+
+Encapsulado nos hooks `useUser` / `useList` / `useSingle` (`src/lib/supabase/hooks.ts`).
+
+### Variáveis de ambiente por integração
+| Variável | Integração | Pública? | Obrigatória? |
+|---|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase | sim | sim |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase (publishable) | sim | sim |
+| `SUPABASE_SERVICE_KEY` | Supabase (secret) | não | não (sem uso atual) |
 
 ---
 
@@ -131,11 +154,10 @@ npm run start
 
 ```
 src/lib/supabase/      clients (client, server, admin) + hooks (useUser, useList, useSingle)
-src/lib/stripe.ts      instância do Stripe (servidor)
-src/proxy.ts           proteção de rotas + bloqueio por assinatura
-src/app/(auth)/        login, cadastro, recuperar-senha
-src/app/assinar/       landing de assinatura
-src/app/api/stripe/    checkout, success, webhook, portal
+src/proxy.ts           middleware do Next 16 — renova sessão + protege rotas (sem gate de pagamento)
+src/app/(auth)/        cadastro, recuperar-senha
+src/app/login/         login (e-mail/senha)
+src/app/assinar/       tela "assinatura em breve" (pagamento desativado)
 src/app/dashboard/     módulos (todos lendo/gravando no Supabase)
-supabase/schema.sql    script para criar o banco
+supabase/schema.sql    script para criar o banco + RLS
 ```
