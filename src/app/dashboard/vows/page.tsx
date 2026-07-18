@@ -10,9 +10,9 @@ import { createVow } from "./actions";
 export default async function VowsPage() {
   const sb = await createSupabaseServer();
   const {
-    data: { user },
-  } = await sb.auth.getUser();
-  if (!user) redirect("/login");
+    data: { session },
+  } = await sb.auth.getSession();
+  if (!session) redirect("/login");
 
   const { data: vows } = await sb
     .from("votos")

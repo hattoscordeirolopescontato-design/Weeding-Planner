@@ -9,9 +9,10 @@ import { TabVisibility } from "./tab-visibility";
 export default async function SettingsPage() {
   const sb = await createSupabaseServer();
   const {
-    data: { user },
-  } = await sb.auth.getUser();
-  if (!user) redirect("/login");
+    data: { session },
+  } = await sb.auth.getSession();
+  if (!session) redirect("/login");
+  const user = session.user;
 
   const { data: profile } = await sb
     .from("profiles")

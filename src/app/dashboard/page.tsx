@@ -5,17 +5,16 @@ import { DashboardOverview } from "./overview-client";
 export default async function DashboardPage() {
   const supabase = await createSupabaseServer();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("nome_noivo, nome_noiva, data_casamento, orcamento_total")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  const [{ count: guestCount }, { data: confirmados }] = await Promise.all([
+  const [{ data: profile }, { count: guestCount }, { data: confirmados }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("nome_noivo, nome_noiva, data_casamento, orcamento_total")
+      .eq("id", session.user.id)
+      .maybeSingle(),
     supabase.from("convidados").select("*", { count: "exact", head: true }),
     supabase
       .from("convidados")
