@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   GoldAuthShell,
   GoldButton,
+  PasswordInput,
   authInput,
   authLabel,
   serifStyle,
@@ -95,15 +96,13 @@ export default function CadastroPage() {
           <label htmlFor="senha" className={authLabel}>
             Senha
           </label>
-          <input
+          <PasswordInput
             id="senha"
-            type="password"
             autoComplete="new-password"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
             placeholder="Mínimo de 6 caracteres"
             required
-            className={authInput}
           />
         </div>
 
@@ -111,15 +110,13 @@ export default function CadastroPage() {
           <label htmlFor="confirmar" className={authLabel}>
             Confirmar senha
           </label>
-          <input
+          <PasswordInput
             id="confirmar"
-            type="password"
             autoComplete="new-password"
             value={confirmar}
             onChange={(e) => setConfirmar(e.target.value)}
             placeholder="••••••••"
             required
-            className={authInput}
           />
         </div>
 

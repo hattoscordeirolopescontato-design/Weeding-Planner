@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   GoldAuthShell,
   GoldButton,
+  PasswordInput,
   authInput,
   authLabel,
   authLink,
@@ -83,15 +84,13 @@ export default function LoginPage() {
               Esqueceu a senha?
             </Link>
           </div>
-          <input
+          <PasswordInput
             id="senha"
-            type="password"
             autoComplete="current-password"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
             placeholder="••••••••"
             required
-            className={authInput}
           />
         </div>
 

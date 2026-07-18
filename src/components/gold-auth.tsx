@@ -1,4 +1,5 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 export const serifStyle = { fontFamily: "'Playfair Display', serif" };
 export const goldGradient =
@@ -9,6 +10,32 @@ export const authInput =
 export const authLabel = "mb-1.5 block text-[13px] font-bold text-[#6B5F4F]";
 export const authLink =
   "text-[13px] font-bold text-[#9C6C3C] hover:text-[#7A521E] hover:underline";
+
+export function PasswordInput({
+  className = "",
+  ...rest
+}: InputHTMLAttributes<HTMLInputElement>) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <div className="relative">
+      <input
+        {...rest}
+        type={visible ? "text" : "password"}
+        className={`${authInput} pr-11 ${className}`}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        aria-label={visible ? "Ocultar senha" : "Mostrar senha"}
+        tabIndex={-1}
+        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#B7A98C] transition hover:text-[#9C6C3C]"
+      >
+        {visible ? <EyeOff size={19} /> : <Eye size={19} />}
+      </button>
+    </div>
+  );
+}
 
 export function GoldButton({
   children,
