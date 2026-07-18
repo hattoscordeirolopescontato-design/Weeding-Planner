@@ -33,22 +33,29 @@ export function Countdown({ date }: { date: string | null }) {
 
   const pad = (n: number) => String(n).padStart(2, "0");
   const units: { label: string; value: string }[] = [
-    { label: "dias", value: now === null ? "--" : String(Math.floor(diff / 86400000)) },
-    { label: "h", value: now === null ? "--" : pad(Math.floor(diff / 3600000) % 24) },
-    { label: "min", value: now === null ? "--" : pad(Math.floor(diff / 60000) % 60) },
-    { label: "s", value: now === null ? "--" : pad(Math.floor(diff / 1000) % 60) },
+    { label: "Dias", value: now === null ? "--" : String(Math.floor(diff / 86400000)) },
+    { label: "Horas", value: now === null ? "--" : pad(Math.floor(diff / 3600000) % 24) },
+    { label: "Minutos", value: now === null ? "--" : pad(Math.floor(diff / 60000) % 60) },
+    { label: "Segundos", value: now === null ? "--" : pad(Math.floor(diff / 1000) % 60) },
   ];
 
   return (
-    <div className="btn-gold inline-flex items-center gap-2.5 rounded-full px-4 py-1.5 shadow-[0_8px_20px_rgba(156,108,60,0.24)]">
-      {units.map((u, i) => (
-        <div key={u.label} className="flex items-center gap-2.5">
-          {i > 0 && <span className="text-[#2B2620]/30">·</span>}
-          <span className="text-center leading-none text-[#2B2620]">
-            <span className="block text-base font-black tabular-nums">{u.value}</span>
-            <span className="block text-[9px] font-bold uppercase tracking-wide opacity-70">
-              {u.label}
-            </span>
+    <div className="flex items-center gap-2.5">
+      {units.map((u) => (
+        <div
+          key={u.label}
+          className="flex min-w-[68px] flex-col items-center justify-center rounded-2xl border border-[rgba(255,255,255,0.8)] px-3 py-2.5 shadow-[0_10px_26px_rgba(156,108,60,0.12),inset_0_1px_0_rgba(255,255,255,0.95)]"
+          style={{
+            background: "rgba(255,255,255,0.38)",
+            backdropFilter: "blur(28px) saturate(190%)",
+            WebkitBackdropFilter: "blur(28px) saturate(190%)",
+          }}
+        >
+          <span className="font-display text-2xl font-bold leading-none tabular-nums text-[#9C6C3C]">
+            {u.value}
+          </span>
+          <span className="mt-1 text-[10px] font-bold uppercase tracking-wide text-[#8a7b63]">
+            {u.label}
           </span>
         </div>
       ))}
