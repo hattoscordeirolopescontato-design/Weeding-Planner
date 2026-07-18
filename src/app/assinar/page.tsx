@@ -1,16 +1,50 @@
-import Link from "next/link";
-import { Card } from "@/components/ui";
+"use client";
 
-// Pagamento desativado por enquanto. O processador (Pagar.me) será integrado
-// depois; até lá o app fica liberado sem cobrança.
+import { useState, type FormEvent } from "react";
+import Link from "next/link";
+import { Check, Lock } from "lucide-react";
+import { Card, Field, Input } from "@/components/ui";
+
+const PRICE = 39.9;
+const COUPONS: Record<string, number> = {
+  NAMU10: 0.1,
+};
+
 export default function AssinarPage() {
+  const [coupon, setCoupon] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const discountRate = appliedCoupon ? COUPONS[appliedCoupon] : 0;
+  const discount = PRICE * discountRate;
+  const priceAfterDiscount = PRICE - discount;
+
+  function handleApplyCoupon() {
+    const code = coupon.trim().toUpperCase();
+    if (!code) return;
+    if (COUPONS[code]) {
+      setAppliedCoupon(code);
+    } else {
+      setAppliedCoupon(null);
+      setNotice("Cupom inválido.");
+    }
+  }
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setNotice(
+      "Estamos finalizando o meio de pagamento. Por enquanto o Wedding Planner está liberado gratuitamente — nenhuma cobrança será feita.",
+    );
+  }
+
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
+    <main className="relative flex min-h-screen flex-col items-center overflow-hidden px-4 py-12">
       {/* Orbs ambiente (liquid glass) */}
       <div
         className="pointer-events-none fixed left-[16%] top-[-140px] h-[420px] w-[420px] rounded-full"
         style={{
-          background: "radial-gradient(circle at 30% 30%, rgba(252,239,192,0.55), rgba(216,180,120,0) 70%)",
+          background:
+            "radial-gradient(circle at 30% 30%, rgba(252,239,192,0.55), rgba(216,180,120,0) 70%)",
           filter: "blur(10px)",
           animation: "wpFloat1 16s ease-in-out infinite",
           zIndex: 0,
@@ -19,14 +53,15 @@ export default function AssinarPage() {
       <div
         className="pointer-events-none fixed right-[10%] bottom-[40px] h-[340px] w-[340px] rounded-full"
         style={{
-          background: "radial-gradient(circle at 60% 40%, rgba(216,180,120,0.32), rgba(216,180,120,0) 70%)",
+          background:
+            "radial-gradient(circle at 60% 40%, rgba(216,180,120,0.32), rgba(216,180,120,0) 70%)",
           filter: "blur(10px)",
           animation: "wpFloat2 20s ease-in-out infinite",
           zIndex: 0,
         }}
       />
 
-      <div className="relative z-[1] mb-6 flex items-center gap-2.5">
+      <div className="relative z-[1] mb-8 flex items-center gap-2.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/wedding-planner-symbol.png"
@@ -39,22 +74,197 @@ export default function AssinarPage() {
         </span>
       </div>
 
-      <Card className="relative z-[1] w-full max-w-md text-center">
-        <h2 className="font-display text-xl font-bold text-[#2B2620]">
-          Assinatura em breve
-        </h2>
-        <p className="mt-3 text-sm leading-relaxed text-[#8a7b63]">
-          Estamos finalizando o meio de pagamento. Enquanto isso, o Wedding Planner
-          está <strong className="text-[#9C6C3C]">liberado gratuitamente</strong> —
-          você pode usar todas as funcionalidades normalmente.
-        </p>
-        <Link
-          href="/dashboard"
-          className="btn-gold mt-6 inline-flex rounded-xl px-6 py-3 text-sm font-black shadow-[0_8px_20px_rgba(156,108,60,0.24)] transition hover:brightness-[1.03]"
-        >
-          Ir para o painel
-        </Link>
-      </Card>
+      <form
+        onSubmit={handleSubmit}
+        className="relative z-[1] flex w-full max-w-4xl flex-col gap-6 lg:flex-row lg:items-start"
+      >
+        {/* FORM */}
+        <Card className="flex-1">
+          <h1 className="font-display text-2xl font-bold text-[#2B2620]">
+            Finalizar assinatura
+          </h1>
+          <p className="mt-1.5 text-[13.5px] text-[#8a7b63]">
+            7 dias grátis, depois R$ 39,90/mês. Cancele quando quiser.
+          </p>
+
+          <div className="mt-7 text-[12.5px] font-bold uppercase tracking-wide text-[#9C6C3C]">
+            Dados pessoais
+          </div>
+          <div className="mt-3">
+            <Field label="Nome completo" htmlFor="nome">
+              <Input id="nome" name="nome" placeholder="Seu nome completo" required />
+            </Field>
+          </div>
+          <div className="mt-3.5 flex gap-3.5">
+            <div className="flex-1">
+              <Field label="E-mail" htmlFor="email">
+                <Input id="email" name="email" type="email" placeholder="voce@email.com" required />
+              </Field>
+            </div>
+            <div className="flex-1">
+              <Field label="CPF" htmlFor="cpf">
+                <Input id="cpf" name="cpf" placeholder="000.000.000-00" required />
+              </Field>
+            </div>
+          </div>
+
+          <div className="mt-6 text-[12.5px] font-bold uppercase tracking-wide text-[#9C6C3C]">
+            Endereço de cobrança
+          </div>
+          <div className="mt-3 flex gap-3.5">
+            <div className="flex-1">
+              <Field label="CEP" htmlFor="cep">
+                <Input id="cep" name="cep" placeholder="00000-000" required />
+              </Field>
+            </div>
+            <div className="flex-[2]">
+              <Field label="Endereço" htmlFor="endereco">
+                <Input id="endereco" name="endereco" placeholder="Rua, número, complemento" required />
+              </Field>
+            </div>
+          </div>
+          <div className="mt-3.5 flex gap-3.5">
+            <div className="flex-1">
+              <Field label="Cidade" htmlFor="cidade">
+                <Input id="cidade" name="cidade" placeholder="Sua cidade" required />
+              </Field>
+            </div>
+            <div className="flex-1">
+              <Field label="Estado" htmlFor="estado">
+                <Input id="estado" name="estado" placeholder="UF" maxLength={2} required />
+              </Field>
+            </div>
+          </div>
+
+          <div className="mt-6 text-[12.5px] font-bold uppercase tracking-wide text-[#9C6C3C]">
+            Cartão de crédito
+          </div>
+          <div className="mt-3">
+            <Field label="Número do cartão" htmlFor="cartao">
+              <Input
+                id="cartao"
+                name="cartao"
+                inputMode="numeric"
+                placeholder="0000 0000 0000 0000"
+                autoComplete="off"
+                required
+              />
+            </Field>
+          </div>
+          <div className="mt-3.5 flex gap-3.5">
+            <div className="flex-1">
+              <Field label="Nome impresso no cartão" htmlFor="nomeCartao">
+                <Input id="nomeCartao" name="nomeCartao" placeholder="NOME COMO NO CARTÃO" required />
+              </Field>
+            </div>
+            <div className="w-[110px]">
+              <Field label="Validade" htmlFor="validade">
+                <Input id="validade" name="validade" placeholder="MM/AA" autoComplete="off" required />
+              </Field>
+            </div>
+            <div className="w-[90px]">
+              <Field label="CVV" htmlFor="cvv">
+                <Input id="cvv" name="cvv" inputMode="numeric" placeholder="000" autoComplete="off" required />
+              </Field>
+            </div>
+          </div>
+        </Card>
+
+        {/* RESUMO */}
+        <Card className="w-full lg:w-[320px] lg:flex-none">
+          <div className="flex justify-between text-sm text-[#5C5142]">
+            <span>Plano Wedding Planner</span>
+            <span className="font-bold text-[#2B2620]">
+              R$ {PRICE.toFixed(2).replace(".", ",")}/mês
+            </span>
+          </div>
+          <div className="mt-2.5 flex justify-between text-sm text-[#5C5142]">
+            <span>Período de teste</span>
+            <span className="font-bold text-[#2A8F5C]">7 dias grátis</span>
+          </div>
+
+          <div className="mt-5">
+            <Field label="Cupom de desconto" htmlFor="cupom">
+              <div className="flex gap-2">
+                <Input
+                  id="cupom"
+                  value={coupon}
+                  onChange={(e) => {
+                    setCoupon(e.target.value);
+                    setNotice(null);
+                  }}
+                  placeholder="Digite o cupom"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyCoupon}
+                  className="btn-gold shrink-0 rounded-xl px-4 text-[13.5px] font-bold shadow-[0_4px_12px_rgba(156,108,60,0.2)]"
+                >
+                  Aplicar
+                </button>
+              </div>
+            </Field>
+            {appliedCoupon && (
+              <div className="mt-2 flex items-center gap-1.5 text-[12.5px] font-bold text-[#2A8F5C]">
+                <Check size={13} strokeWidth={2.5} />
+                Cupom aplicado: {Math.round(discountRate * 100)}% de desconto
+              </div>
+            )}
+          </div>
+
+          <div className="my-5 h-px bg-[rgba(156,108,60,0.18)]" />
+
+          {appliedCoupon && (
+            <>
+              <div className="flex justify-between text-sm text-[#5C5142]">
+                <span>Desconto ({appliedCoupon})</span>
+                <span className="font-bold text-[#2A8F5C]">
+                  - R$ {discount.toFixed(2).replace(".", ",")}
+                </span>
+              </div>
+              <div className="my-5 h-px bg-[rgba(156,108,60,0.18)]" />
+            </>
+          )}
+
+          <div className="flex justify-between text-[15px]">
+            <span className="font-bold text-[#2B2620]">Cobrado hoje</span>
+            <span className="font-extrabold text-[#2B2620]">R$ 0,00</span>
+          </div>
+          <div className="mt-1 text-right text-xs text-[#8a7b63]">
+            Após o teste: R$ {priceAfterDiscount.toFixed(2).replace(".", ",")}/mês
+            {appliedCoupon ? " com o cupom" : ""}
+          </div>
+
+          <button
+            type="submit"
+            className="btn-gold mt-7 w-full rounded-full py-3.5 text-center text-[15.5px] font-black shadow-[0_10px_26px_rgba(156,108,60,0.3)] transition hover:brightness-[1.03]"
+          >
+            Assinar por R$ {PRICE.toFixed(2).replace(".", ",")}/mês
+          </button>
+          <div className="mt-3.5 flex items-center justify-center gap-1.5 text-xs text-[#8a7b63]">
+            <Lock size={13} strokeWidth={2} />
+            Pagamento seguro e criptografado
+          </div>
+
+          {notice && (
+            <p className="mt-4 rounded-xl bg-[rgba(156,108,60,0.08)] p-3 text-xs leading-relaxed text-[#6B5F4F]">
+              {notice}
+            </p>
+          )}
+
+          <p className="mt-4 text-xs leading-relaxed text-[#8a7b63]">
+            Ao continuar, R$ 39,90 será cobrado mensalmente após o período de teste.
+            Cancele quando quiser, sem multa.
+          </p>
+        </Card>
+      </form>
+
+      <Link
+        href="/dashboard"
+        className="relative z-[1] mt-6 text-sm font-medium text-[#8a7b63] hover:text-[#9C6C3C]"
+      >
+        Voltar para o painel
+      </Link>
     </main>
   );
 }
