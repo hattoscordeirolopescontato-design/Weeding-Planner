@@ -129,7 +129,7 @@ export default function Home() {
           </div>
         </section>
 
-        <footer className="mx-auto w-full max-w-5xl px-6 py-8 text-center text-sm text-[#b7a98c]">
+        <footer className="mx-auto w-full max-w-5xl px-6 pt-8 pb-24 text-center text-sm text-[#b7a98c] sm:pb-8">
           Feito com carinho para o grande dia.
         </footer>
       </div>
