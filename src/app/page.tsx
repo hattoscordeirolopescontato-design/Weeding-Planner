@@ -20,12 +20,32 @@ function WhatsAppButton() {
       rel="noopener noreferrer"
       aria-label="Falar com o suporte pelo WhatsApp"
       className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] shadow-[0_8px_24px_rgba(37,211,102,0.4)] transition hover:scale-105 hover:shadow-[0_10px_28px_rgba(37,211,102,0.5)]"
+      style={{ animation: "wpBob 2.6s ease-in-out infinite" }}
     >
-      <svg viewBox="0 0 24 24" width="28" height="28" fill="white" aria-hidden>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-full border-2 border-[rgba(37,211,102,0.55)]"
+        style={{ animation: "wpPulse 2.4s ease-in-out infinite" }}
+      />
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="white" aria-hidden className="relative z-[1]">
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
         <path d="M12.004 2c-5.523 0-10 4.477-10 10 0 1.766.462 3.492 1.34 5.008L2 22l5.13-1.326A9.958 9.958 0 0 0 12.004 22c5.523 0 10-4.477 10-10S17.527 2 12.004 2zm0 18.083a8.06 8.06 0 0 1-4.09-1.117l-.293-.174-3.043.787.812-2.968-.19-.304a8.07 8.07 0 0 1-1.24-4.307c0-4.465 3.63-8.096 8.096-8.096s8.096 3.631 8.096 8.096-3.631 8.083-8.148 8.083z" />
       </svg>
     </a>
+  );
+}
+
+function CardSheen() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute -left-[30%] -top-[60%] h-[80%] w-[160%]"
+      style={{
+        background: "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.55) 48%, transparent 66%)",
+        backgroundSize: "220% 100%",
+        animation: "wpShimmer 7s linear infinite",
+      }}
+    />
   );
 }
 
@@ -96,7 +116,7 @@ export default function Home() {
           </nav>
         </header>
 
-        <section className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-6 py-16 text-center">
+        <section className="mx-auto flex w-full max-w-3xl flex-col items-center px-6 pt-16 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/wedding-planner-logo.png" alt="Wedding Planner" className="h-20 w-auto" />
           <h1 className="font-display mt-8 text-5xl font-bold tracking-tight text-[#2B2620] sm:text-6xl">
@@ -112,21 +132,29 @@ export default function Home() {
           >
             Começar agora
           </Link>
+          <p className="mt-3.5 text-[13.5px] text-[#8a7b63]">
+            7 dias grátis, depois <span className="font-bold text-[#2B2620]">R$ 39,90/mês</span> — cancele quando quiser.
+          </p>
+        </section>
 
-          <div className="mt-16 grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-            {features.map((f) => {
-              const Icon = f.icon;
-              return (
-                <div key={f.title} className="glass p-6 text-left">
-                  <div className="gold-chip flex h-11 w-11 items-center justify-center rounded-[12px]">
-                    <Icon size={22} strokeWidth={1.8} className="text-[#9C6C3C]" />
-                  </div>
-                  <h3 className="mt-4 font-display text-lg font-bold text-[#2B2620]">{f.title}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-[#8a7b63]">{f.desc}</p>
+        <section className="mx-auto mt-14 grid w-full max-w-[1100px] grid-cols-1 gap-5 px-6 pb-16 sm:grid-cols-2 lg:grid-cols-4">
+          {features.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <div
+                key={f.title}
+                className="glass relative overflow-hidden p-6 text-left"
+                style={{ animation: `wpRise 550ms ease-out ${180 + i * 90}ms both` }}
+              >
+                <CardSheen />
+                <div className="gold-chip flex h-11 w-11 items-center justify-center rounded-[12px]">
+                  <Icon size={22} strokeWidth={1.8} className="text-[#9C6C3C]" />
                 </div>
-              );
-            })}
-          </div>
+                <h3 className="mt-4 font-display text-lg font-bold text-[#2B2620]">{f.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-[#8a7b63]">{f.desc}</p>
+              </div>
+            );
+          })}
         </section>
 
         <footer className="mx-auto w-full max-w-5xl px-6 pt-8 pb-24 text-center text-sm text-[#b7a98c] sm:pb-8">
