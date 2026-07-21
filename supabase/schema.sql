@@ -197,6 +197,20 @@ create table if not exists votos (
   created_at timestamptz default now()
 );
 
+-- pedidos do checkout transparente (Pagar.me). Inserts/updates só pelo
+-- backend (service role) — RLS abaixo só libera SELECT para o dono.
+create table if not exists pedidos_pagarme (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users on delete cascade,
+  pagarme_order_id text unique,
+  pagarme_card_id text,
+  status text not null default 'pending',
+  valor numeric not null,
+  raw_response jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
 -- ============================================================================
 -- Row Level Security
 -- ============================================================================
@@ -215,6 +229,7 @@ alter table cerimonia enable row level security;
 alter table cartorio enable row level security;
 alter table dress_code enable row level security;
 alter table votos enable row level security;
+alter table pedidos_pagarme enable row level security;
 
 create policy "own profile" on profiles for all using (auth.uid() = id) with check (auth.uid() = id);
 create policy "own subscription" on subscriptions for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
@@ -231,3 +246,4 @@ create policy "own cerimonia" on cerimonia for all using (auth.uid() = user_id) 
 create policy "own cartorio" on cartorio for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "own dress_code" on dress_code for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "own votos" on votos for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "select own pedidos_pagarme" on pedidos_pagarme for select using (auth.uid() = user_id);

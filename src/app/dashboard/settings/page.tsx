@@ -20,6 +20,13 @@ export default async function SettingsPage() {
     .eq("id", user.id)
     .maybeSingle();
 
+  const { data: pedido } = await sb
+    .from("pedidos_pagarme")
+    .select("status, valor, created_at")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   return (
     <div className="max-w-2xl">
       <PageHeader title="Configurações" subtitle="Dados do casamento, assinatura e conta." />
@@ -41,7 +48,7 @@ export default async function SettingsPage() {
 
       <Card className="mt-6">
         <h2 className="font-display mb-4 text-xl font-semibold text-[#9C6C3C]">Assinatura</h2>
-        <SubscriptionSection />
+        <SubscriptionSection pedido={pedido} />
       </Card>
 
       <Card className="mt-6">

@@ -2,8 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // "proxy" é o middleware do Next.js 16 (runtime Node).
-// Renova a sessão do Supabase e exige login para a área do app.
-// (A verificação de assinatura/pagamento está desativada por enquanto.)
+// Renova a sessão do Supabase, exige login para a área do app e bloqueia o
+// dashboard sem um pedido pago na Pagar.me.
 export async function proxy(req: NextRequest) {
   let res = NextResponse.next({ request: req });
 
@@ -43,6 +43,21 @@ export async function proxy(req: NextRequest) {
 
   if (user && isAuthPage) {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
+  }
+
+  // Gate de pagamento: dashboard exige um pedido pago na Pagar.me.
+  // (/completar-perfil fica de fora — só exige login, não pagamento.)
+  if (user && pathname.startsWith("/dashboard")) {
+    const { data: pedido } = await supabase
+      .from("pedidos_pagarme")
+      .select("id")
+      .eq("status", "paid")
+      .limit(1)
+      .maybeSingle();
+
+    if (!pedido) {
+      return NextResponse.redirect(new URL("/assinar", req.nextUrl));
+    }
   }
 
   return res;

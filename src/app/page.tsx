@@ -133,7 +133,7 @@ export default function Home() {
             Começar agora
           </Link>
           <p className="mt-3.5 text-[13.5px] text-[#8a7b63]">
-            7 dias grátis, depois <span className="font-bold text-[#2B2620]">R$ 39,90/mês</span> — cancele quando quiser.
+            <span className="font-bold text-[#2B2620]">R$ 39,90/mês</span> — cancele quando quiser.
           </p>
         </section>
 

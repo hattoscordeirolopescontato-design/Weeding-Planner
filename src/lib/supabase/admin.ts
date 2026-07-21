@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 /**
  * Cliente com a service role key — IGNORA RLS. Usar APENAS no servidor
- * (ex.: webhook do Stripe atualizando assinaturas). Nunca no cliente.
+ * (ex.: checkout e webhook da Pagar.me atualizando pedidos). Nunca no cliente.
  */
 export function createSupabaseAdmin() {
   return createClient(

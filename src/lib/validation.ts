@@ -17,7 +17,7 @@ const optionalInt = z.preprocess(
 );
 
 const optionalString = z.preprocess(
-  (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+  (v) => (v === null || v === undefined || (typeof v === "string" && v.trim() === "") ? undefined : v),
   z.string().optional(),
 );
 
@@ -83,6 +83,18 @@ export const vowSchema = z.object({
 
 export const vowUnlockSchema = z.object({
   password: z.string().min(1, "Informe a senha"),
+});
+
+export const checkoutSchema = z.object({
+  cardToken: z.string().min(1, "Token do cartão ausente"),
+  buyerName: z.string().min(2, "Informe o nome completo"),
+  buyerEmail: z.email("E-mail inválido"),
+  buyerDocument: z.string().min(11, "CPF inválido"),
+  zipCode: z.string().min(8, "CEP inválido"),
+  address: z.string().min(1, "Informe o endereço"),
+  city: z.string().min(1, "Informe a cidade"),
+  state: z.string().length(2, "UF inválida"),
+  couponCode: optionalString,
 });
 
 /** Extrai um mapa { campo: mensagem } a partir de um ZodError. */
