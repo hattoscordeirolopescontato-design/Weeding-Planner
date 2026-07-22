@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Lock } from "lucide-react";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { DashboardNav } from "@/components/dashboard-nav";
 import { LogoutButton } from "@/components/logout-button";
+import { billingPeriodEndsAt } from "@/lib/billing";
 
 export default async function DashboardLayout({
   children,
@@ -17,7 +20,7 @@ export default async function DashboardLayout({
 
   let { data: profile } = await supabase
     .from("profiles")
-    .select("nome_noivo, nome_noiva, data_casamento")
+    .select("nome_noivo, nome_noiva, data_casamento, assinatura_cancelada_em")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -33,8 +36,25 @@ export default async function DashboardLayout({
       nome_noivo: meta.nome_noivo ?? null,
       nome_noiva: meta.nome_noiva ?? null,
       data_casamento: meta.data_casamento ?? null,
+      assinatura_cancelada_em: null,
     };
   }
+
+  // Cobrança é única, não recorrente: cada pagamento aprovado libera 1 mês
+  // de acesso (mesmo dia do mês seguinte). Depois disso, trava como se
+  // tivesse cancelado — precisa pagar de novo pra desbloquear.
+  const { data: ultimoPago } = await supabase
+    .from("pedidos_pagarme")
+    .select("created_at")
+    .eq("status", "paid")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const periodoExpirado = ultimoPago
+    ? new Date() > billingPeriodEndsAt(ultimoPago.created_at)
+    : false;
+
+  const isLocked = !!profile.assinatura_cancelada_em || periodoExpirado;
 
   const title =
     [profile?.nome_noivo, profile?.nome_noiva].filter(Boolean).join(" & ") ||
@@ -139,7 +159,29 @@ export default async function DashboardLayout({
 
         {/* CONTEÚDO */}
         <main className="flex-1 overflow-auto px-6 py-8 sm:px-10 lg:px-14 lg:py-12">
-          {children}
+          {isLocked && (
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[rgba(180,144,84,0.35)] bg-[rgba(156,108,60,0.08)] px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[rgba(156,108,60,0.14)]">
+                  <Lock size={16} className="text-[#9C6C3C]" />
+                </div>
+                <p className="text-sm font-medium text-[#6B5F4F]">
+                  {profile.assinatura_cancelada_em
+                    ? "Sua assinatura foi cancelada. Seus dados continuam salvos, mas o painel fica travado para edição até você reativar."
+                    : "Seu período pago acabou. Seus dados continuam salvos, mas o painel fica travado para edição até renovar."}
+                </p>
+              </div>
+              <Link
+                href="/assinar"
+                className="btn-gold shrink-0 rounded-full px-4 py-1.5 text-[13px] font-bold shadow-[0_4px_12px_rgba(156,108,60,0.2)]"
+              >
+                Reativar assinatura
+              </Link>
+            </div>
+          )}
+          <div className={isLocked ? "pointer-events-none select-none opacity-60 grayscale" : ""}>
+            {children}
+          </div>
         </main>
       </div>
     </div>

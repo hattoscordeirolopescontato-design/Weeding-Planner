@@ -12,10 +12,15 @@ create table if not exists profiles (
   nome_noiva text,
   data_casamento date,
   orcamento_total numeric default 0,
-  -- gravados no checkout (/api/checkout) — é o cadastro real da pessoa,
-  -- não só dado de pagamento. cpf único: uma conta por CPF.
+  -- nome_completo/cpf gravados já no cadastro (/cadastro) — cpf único:
+  -- uma conta por CPF, evita trial de 7 dias infinito com contas
+  -- descartáveis. telefone também coletado no cadastro.
   nome_completo text,
   cpf text unique,
+  telefone text,
+  -- cancelamento self-service (Configurações > Assinatura): não apaga
+  -- nada, só trava edição no dashboard enquanto estiver preenchido.
+  assinatura_cancelada_em timestamptz,
   created_at timestamptz default now()
 );
 

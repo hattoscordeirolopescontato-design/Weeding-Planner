@@ -46,10 +46,20 @@ export async function POST(req: Request) {
 
   if (status && orderId) {
     const admin = createSupabaseAdmin();
-    await admin
+    const { data: updated } = await admin
       .from("pedidos_pagarme")
       .update({ status, raw_response: payload, updated_at: new Date().toISOString() })
-      .eq("pagarme_order_id", orderId);
+      .eq("pagarme_order_id", orderId)
+      .select("user_id")
+      .maybeSingle();
+
+    // Pagamento confirmado depois de um cancelamento anterior = reativação.
+    if (status === "paid" && updated?.user_id) {
+      await admin
+        .from("profiles")
+        .update({ assinatura_cancelada_em: null })
+        .eq("id", updated.user_id);
+    }
   }
 
   // Responde 200 mesmo para eventos não tratados — evita retries desnecessários.

@@ -26,38 +26,10 @@ export async function POST(req: Request) {
 
   const admin = createSupabaseAdmin();
 
-  // O CPF é o dado de cadastro da pessoa (não só do pagamento) — só é
-  // permitida uma conta por CPF.
+  // O CPF único é checado no cadastro (dono da conta) — o CPF do
+  // pagamento é só um dado da Pagar.me e pode ser de outra pessoa (quem
+  // está pagando não precisa ser quem criou a conta).
   const cpf = data.buyerDocument.replace(/\D/g, "");
-  const { data: cpfOwner } = await admin
-    .from("profiles")
-    .select("id")
-    .eq("cpf", cpf)
-    .neq("id", user.id)
-    .maybeSingle();
-  if (cpfOwner) {
-    return NextResponse.json(
-      { error: "Este CPF já possui um cadastro." },
-      { status: 409 },
-    );
-  }
-
-  const { error: profileError } = await admin
-    .from("profiles")
-    .upsert({ id: user.id, nome_completo: data.buyerName, cpf });
-  if (profileError) {
-    // Corrida: outra conta gravou o mesmo CPF entre o SELECT e o upsert.
-    if (profileError.code === "23505") {
-      return NextResponse.json(
-        { error: "Este CPF já possui um cadastro." },
-        { status: 409 },
-      );
-    }
-    return NextResponse.json(
-      { error: "Não foi possível salvar os dados do cadastro." },
-      { status: 500 },
-    );
-  }
 
   try {
     // Pagar.me espera line_1 no formato "número, rua, bairro" (nessa ordem)
@@ -106,6 +78,14 @@ export async function POST(req: Request) {
       // O pagamento já foi processado na Pagar.me — só o registro local falhou.
       // Não falha a resposta por isso, mas precisa ficar visível para investigar.
       console.error("Falha ao gravar pedidos_pagarme:", dbError.message);
+    }
+
+    // Pagamento aprovado depois de um cancelamento anterior = reativação.
+    if (status === "paid") {
+      await admin
+        .from("profiles")
+        .update({ assinatura_cancelada_em: null })
+        .eq("id", user.id);
     }
 
     return NextResponse.json({ status, orderId: order.id });

@@ -21,6 +21,34 @@ const optionalString = z.preprocess(
   z.string().optional(),
 );
 
+/** Valida o dígito verificador do CPF (recebe só dígitos, 11 caracteres). */
+export function isValidCPF(digits: string): boolean {
+  if (digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) return false;
+  const check = (len: number) => {
+    let sum = 0;
+    for (let i = 0; i < len; i++) sum += Number(digits[i]) * (len + 1 - i);
+    const r = (sum * 10) % 11;
+    return r === 10 ? 0 : r;
+  };
+  return check(9) === Number(digits[9]) && check(10) === Number(digits[10]);
+}
+
+const cpfField = z
+  .string()
+  .transform((v) => v.replace(/\D/g, ""))
+  .refine(isValidCPF, "CPF inválido");
+
+export const cadastroSchema = z.object({
+  email: z.email("E-mail inválido"),
+  password: z.string().min(6, "A senha deve ter ao menos 6 caracteres"),
+  phone: z.string().min(10, "Telefone inválido"),
+  cpf: cpfField,
+});
+
+export const verificarCpfSchema = z.object({
+  cpf: cpfField,
+});
+
 export const registerSchema = z
   .object({
     name: z.string().min(2, "Informe seu nome"),

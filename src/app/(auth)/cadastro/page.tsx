@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { isValidCPF } from "@/lib/validation";
 import {
   GoldAuthShell,
   GoldButton,
@@ -18,6 +19,8 @@ export default function CadastroPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [cpf, setCpf] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,20 +37,65 @@ export default function CadastroPage() {
       setError("As senhas não conferem.");
       return;
     }
+    const cpfDigits = cpf.replace(/\D/g, "");
+    if (!isValidCPF(cpfDigits)) {
+      setError("CPF inválido.");
+      return;
+    }
+    const telefoneDigits = telefone.replace(/\D/g, "");
+    if (telefoneDigits.length < 10) {
+      setError("Telefone inválido.");
+      return;
+    }
+
     setLoading(true);
+
+    // Só um cadastro por CPF — checa antes de criar a conta pra não deixar
+    // a pessoa preencher tudo e ser barrada só no fim.
+    const checkRes = await fetch("/api/cadastro/verificar-cpf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cpf: cpfDigits }),
+    });
+    const check = await checkRes.json().catch(() => null);
+    if (!checkRes.ok || !check?.disponivel) {
+      setLoading(false);
+      setError("Este CPF já possui um cadastro.");
+      return;
+    }
+
     const sb = createClient();
-    const { data, error } = await sb.auth.signUp({ email, password: senha });
-    setLoading(false);
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password: senha,
+      options: { data: { cpf: cpfDigits, telefone: telefoneDigits } },
+    });
     if (error) {
+      setLoading(false);
       setError(error.message);
       return;
     }
     if (!data.session) {
+      setLoading(false);
       setInfo(
         "Conta criada! Confirme seu e-mail pelo link que enviamos e depois faça login.",
       );
       return;
     }
+
+    const { error: profileError } = await sb
+      .from("profiles")
+      .upsert({ id: data.session.user.id, cpf: cpfDigits, telefone: telefoneDigits });
+    setLoading(false);
+    if (profileError) {
+      setError(
+        profileError.code === "23505"
+          ? "Este CPF já possui um cadastro."
+          : "Não foi possível salvar os dados do cadastro.",
+      );
+      return;
+    }
+
     router.push("/completar-perfil");
     router.refresh();
   }
@@ -87,6 +135,37 @@ export default function CadastroPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="seunome@email.com"
+            required
+            className={authInput}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="telefone" className={authLabel}>
+            Telefone
+          </label>
+          <input
+            id="telefone"
+            type="tel"
+            autoComplete="tel"
+            value={telefone}
+            onChange={(e) => setTelefone(e.target.value)}
+            placeholder="(11) 98888-7777"
+            required
+            className={authInput}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="cpf" className={authLabel}>
+            CPF
+          </label>
+          <input
+            id="cpf"
+            autoComplete="off"
+            value={cpf}
+            onChange={(e) => setCpf(e.target.value)}
+            placeholder="000.000.000-00"
             required
             className={authInput}
           />
