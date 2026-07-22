@@ -117,12 +117,14 @@ export function DashboardOverview({
   budget,
   guestCount,
   confirmedPeople,
+  trialDaysLeft,
 }: {
   title: string;
   date: string | null;
   budget: number | null;
   guestCount: number;
   confirmedPeople: number;
+  trialDaysLeft: number | null;
 }) {
   const [vendors, setVendors] = useState<VendorRow[]>([]);
   const [venue, setVenue] = useState<LocalRow | null>(null);
@@ -172,6 +174,27 @@ export function DashboardOverview({
 
   return (
     <div>
+      {trialDaysLeft !== null && (
+        <div className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-[rgba(180,144,84,0.3)] bg-[rgba(156,108,60,0.06)] px-5 py-3.5">
+          <p className="text-sm font-medium text-[#6B5F4F]">
+            {trialDaysLeft > 0 ? (
+              <>
+                Você tem <strong className="text-[#9C6C3C]">{trialDaysLeft}</strong>{" "}
+                {trialDaysLeft === 1 ? "dia grátis restante" : "dias grátis restantes"}.
+              </>
+            ) : (
+              "Seus 7 dias grátis acabaram."
+            )}
+          </p>
+          <Link
+            href="/assinar"
+            className="shrink-0 rounded-full bg-[#9C6C3C] px-4 py-1.5 text-[13px] font-bold text-white transition hover:brightness-105"
+          >
+            Assinar agora
+          </Link>
+        </div>
+      )}
+
       <header className="mb-9 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="text-[13px] font-bold tracking-[0.04em] text-[#8a7b63]">

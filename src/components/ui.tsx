@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import type {
   InputHTMLAttributes,
   TextareaHTMLAttributes,
@@ -54,10 +55,11 @@ export function Field({
   );
 }
 
-export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
-  const { className = "", ...rest } = props;
-  return <input {...rest} className={`glass-input ${className}`} />;
-}
+export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
+  function Input({ className = "", ...rest }, ref) {
+    return <input ref={ref} {...rest} className={`glass-input ${className}`} />;
+  },
+);
 
 export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const { className = "", ...rest } = props;

@@ -26,21 +26,61 @@ export async function POST(req: Request) {
 
   const admin = createSupabaseAdmin();
 
+  // O CPF é o dado de cadastro da pessoa (não só do pagamento) — só é
+  // permitida uma conta por CPF.
+  const cpf = data.buyerDocument.replace(/\D/g, "");
+  const { data: cpfOwner } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("cpf", cpf)
+    .neq("id", user.id)
+    .maybeSingle();
+  if (cpfOwner) {
+    return NextResponse.json(
+      { error: "Este CPF já possui um cadastro." },
+      { status: 409 },
+    );
+  }
+
+  const { error: profileError } = await admin
+    .from("profiles")
+    .upsert({ id: user.id, nome_completo: data.buyerName, cpf });
+  if (profileError) {
+    // Corrida: outra conta gravou o mesmo CPF entre o SELECT e o upsert.
+    if (profileError.code === "23505") {
+      return NextResponse.json(
+        { error: "Este CPF já possui um cadastro." },
+        { status: 409 },
+      );
+    }
+    return NextResponse.json(
+      { error: "Não foi possível salvar os dados do cadastro." },
+      { status: 500 },
+    );
+  }
+
   try {
+    // Pagar.me espera line_1 no formato "número, rua, bairro" (nessa ordem)
+    // para prevenção de fraude.
+    const line1Parts = [data.number, data.address, data.neighborhood].filter(Boolean);
+    const billingAddress = {
+      line_1: line1Parts.join(", "),
+      line_2: data.complement || undefined,
+      zip_code: data.zipCode,
+      city: data.city,
+      state: data.state,
+      country: "BR",
+    };
+
     const customer = await createCustomer({
       name: data.buyerName,
       email: data.buyerEmail,
-      document: data.buyerDocument,
-      address: {
-        line_1: data.address,
-        zip_code: data.zipCode,
-        city: data.city,
-        state: data.state,
-        country: "BR",
-      },
+      document: cpf,
+      phone: data.buyerPhone,
+      address: billingAddress,
     });
 
-    const card = await createCard(customer.id, data.cardToken);
+    const card = await createCard(customer.id, data.cardToken, billingAddress);
 
     const order = await createOrder({
       customerId: customer.id,

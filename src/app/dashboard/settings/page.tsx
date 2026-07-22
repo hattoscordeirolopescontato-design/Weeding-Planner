@@ -2,9 +2,12 @@ import { redirect } from "next/navigation";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { Card, PageHeader } from "@/components/ui";
 import { LogoutButton } from "@/components/logout-button";
+import { WhatsAppIcon, whatsappHref } from "@/components/whatsapp";
 import { WeddingSettingsForm } from "./wedding-settings-form";
 import { SubscriptionSection } from "./subscription-section";
 import { TabVisibility } from "./tab-visibility";
+
+const CANCEL_MESSAGE = "Olá! Quero cancelar minha assinatura do Wedding Planner.";
 
 export default async function SettingsPage() {
   const sb = await createSupabaseServer();
@@ -47,7 +50,19 @@ export default async function SettingsPage() {
       </Card>
 
       <Card className="mt-6">
-        <h2 className="font-display mb-4 text-xl font-semibold text-[#9C6C3C]">Assinatura</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-display text-xl font-semibold text-[#9C6C3C]">Assinatura</h2>
+          <a
+            href={whatsappHref(CANCEL_MESSAGE)}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Cancelar assinatura pelo WhatsApp"
+            title="Quer cancelar? Fale com o suporte pelo WhatsApp"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_4px_12px_rgba(37,211,102,0.35)] transition hover:brightness-105"
+          >
+            <WhatsAppIcon size={18} />
+          </a>
+        </div>
         <SubscriptionSection pedido={pedido} />
       </Card>
 

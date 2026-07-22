@@ -33,10 +33,15 @@ declare global {
 export default function AssinarPage() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const enderecoRef = useRef<HTMLInputElement>(null);
+  const cidadeRef = useRef<HTMLInputElement>(null);
+  const estadoRef = useRef<HTMLInputElement>(null);
   const [coupon, setCoupon] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [bairro, setBairro] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
 
   const priceAfterDiscount = priceWithCoupon(appliedCoupon);
   const discount = PRICE - priceAfterDiscount;
@@ -49,6 +54,28 @@ export default function AssinarPage() {
     } else {
       setAppliedCoupon(null);
       setNotice("Cupom inválido.");
+    }
+  }
+
+  async function handleCepBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const digits = e.target.value.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await res.json();
+      if (data.erro) {
+        setNotice("CEP não encontrado. Preencha o endereço manualmente.");
+      } else {
+        if (enderecoRef.current) enderecoRef.current.value = data.logradouro ?? "";
+        if (cidadeRef.current) cidadeRef.current.value = data.localidade ?? "";
+        if (estadoRef.current) estadoRef.current.value = data.uf ?? "";
+        setBairro(data.bairro ?? "");
+      }
+    } catch {
+      setNotice("Não foi possível buscar o CEP. Preencha o endereço manualmente.");
+    } finally {
+      setCepLoading(false);
     }
   }
 
@@ -88,8 +115,12 @@ export default function AssinarPage() {
           buyerName: fd.get("nome"),
           buyerEmail: fd.get("email"),
           buyerDocument: fd.get("cpf"),
+          buyerPhone: fd.get("telefone"),
           zipCode: fd.get("cep"),
           address: fd.get("endereco"),
+          number: fd.get("numero"),
+          complement: fd.get("complemento"),
+          neighborhood: fd.get("bairro"),
           city: fd.get("cidade"),
           state: fd.get("estado"),
           couponCode: appliedCoupon,
@@ -196,34 +227,85 @@ export default function AssinarPage() {
               </Field>
             </div>
           </div>
+          <div className="mt-3.5">
+            <Field label="Telefone" htmlFor="telefone">
+              <Input
+                id="telefone"
+                name="telefone"
+                type="tel"
+                placeholder="(11) 98888-7777"
+                required
+              />
+            </Field>
+          </div>
 
           <div className="mt-6 text-[12.5px] font-bold uppercase tracking-wide text-[#9C6C3C]">
             Endereço de cobrança
           </div>
           <div className="mt-3 flex gap-3.5">
             <div className="flex-1">
-              <Field label="CEP" htmlFor="cep">
-                <Input id="cep" name="cep" placeholder="00000-000" required />
+              <Field
+                label="CEP"
+                htmlFor="cep"
+                hint={cepLoading ? "Buscando endereço..." : undefined}
+              >
+                <Input
+                  id="cep"
+                  name="cep"
+                  placeholder="00000-000"
+                  onBlur={handleCepBlur}
+                  required
+                />
               </Field>
             </div>
+            <div className="w-[110px]">
+              <Field label="Número" htmlFor="numero">
+                <Input id="numero" name="numero" placeholder="Nº" required />
+              </Field>
+            </div>
+          </div>
+          <div className="mt-3.5 flex gap-3.5">
             <div className="flex-[2]">
               <Field label="Endereço" htmlFor="endereco">
-                <Input id="endereco" name="endereco" placeholder="Rua, número, complemento" required />
+                <Input
+                  id="endereco"
+                  name="endereco"
+                  ref={enderecoRef}
+                  placeholder="Rua"
+                  required
+                />
+              </Field>
+            </div>
+            <div className="flex-1">
+              <Field label="Complemento" htmlFor="complemento">
+                <Input
+                  id="complemento"
+                  name="complemento"
+                  placeholder="Apto, bloco... (opcional)"
+                />
               </Field>
             </div>
           </div>
           <div className="mt-3.5 flex gap-3.5">
             <div className="flex-1">
               <Field label="Cidade" htmlFor="cidade">
-                <Input id="cidade" name="cidade" placeholder="Sua cidade" required />
+                <Input id="cidade" name="cidade" ref={cidadeRef} placeholder="Sua cidade" required />
               </Field>
             </div>
-            <div className="flex-1">
+            <div className="w-[80px]">
               <Field label="Estado" htmlFor="estado">
-                <Input id="estado" name="estado" placeholder="UF" maxLength={2} required />
+                <Input
+                  id="estado"
+                  name="estado"
+                  ref={estadoRef}
+                  placeholder="UF"
+                  maxLength={2}
+                  required
+                />
               </Field>
             </div>
           </div>
+          <input type="hidden" name="bairro" value={bairro} />
 
           <div className="mt-6 text-[12.5px] font-bold uppercase tracking-wide text-[#9C6C3C]">
             Cartão de crédito

@@ -9,18 +9,33 @@ export default async function DashboardPage() {
   } = await supabase.auth.getSession();
   if (!session) redirect("/login");
 
-  const [{ data: profile }, { count: guestCount }, { data: confirmados }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("nome_noivo, nome_noiva, data_casamento, orcamento_total")
-      .eq("id", session.user.id)
-      .maybeSingle(),
-    supabase.from("convidados").select("*", { count: "exact", head: true }),
-    supabase
-      .from("convidados")
-      .select("acompanhantes")
-      .eq("status", "confirmado"),
-  ]);
+  const [{ data: profile }, { count: guestCount }, { data: confirmados }, { data: pedidoPago }] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select("nome_noivo, nome_noiva, data_casamento, orcamento_total")
+        .eq("id", session.user.id)
+        .maybeSingle(),
+      supabase.from("convidados").select("*", { count: "exact", head: true }),
+      supabase
+        .from("convidados")
+        .select("acompanhantes")
+        .eq("status", "confirmado"),
+      supabase
+        .from("pedidos_pagarme")
+        .select("id")
+        .eq("status", "paid")
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+  // Dias restantes dos 7 dias grátis (só relevante para quem ainda não pagou).
+  const TRIAL_DAYS = 7;
+  const daysSinceSignup = Math.floor(
+    (Date.now() - new Date(session.user.created_at).getTime()) / 86400000,
+  );
+  const trialDaysLeft =
+    pedidoPago ? null : Math.max(0, TRIAL_DAYS - daysSinceSignup);
 
   const confirmedPeople =
     (confirmados?.length ?? 0) +
@@ -40,6 +55,7 @@ export default async function DashboardPage() {
       budget={profile?.orcamento_total ?? null}
       guestCount={guestCount ?? 0}
       confirmedPeople={confirmedPeople}
+      trialDaysLeft={trialDaysLeft}
     />
   );
 }

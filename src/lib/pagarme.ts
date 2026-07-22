@@ -36,6 +36,7 @@ async function pagarmeRequest<T>(path: string, init?: RequestInit): Promise<T> {
 
 export type PagarmeAddress = {
   line_1: string;
+  line_2?: string;
   zip_code: string;
   city: string;
   state: string;
@@ -52,8 +53,14 @@ export async function createCustomer(input: {
   name: string;
   email: string;
   document: string;
+  phone: string;
   address: PagarmeAddress;
 }): Promise<PagarmeCustomer> {
+  // Pagar.me exige ao menos um telefone do cliente para autorizar a cobrança.
+  const digits = input.phone.replace(/\D/g, "");
+  const areaCode = digits.slice(0, 2);
+  const number = digits.slice(2);
+
   return pagarmeRequest<PagarmeCustomer>("/customers", {
     method: "POST",
     body: JSON.stringify({
@@ -63,16 +70,25 @@ export async function createCustomer(input: {
       document: input.document,
       document_type: "CPF",
       address: input.address,
+      phones: {
+        mobile_phone: { country_code: "55", area_code: areaCode, number },
+      },
     }),
   });
 }
 
 // Conta PSP: card_token não pode ser usado direto na criação do pedido —
 // primeiro é preciso trocar o token por um card_id (ver Contexto do plano).
-export async function createCard(customerId: string, token: string): Promise<{ id: string }> {
+// billing_address vai aqui (no cartão) — a Pagar.me recusa a cobrança sem
+// isso, mesmo quando o pedido já referencia o card_id.
+export async function createCard(
+  customerId: string,
+  token: string,
+  billingAddress: PagarmeAddress,
+): Promise<{ id: string }> {
   return pagarmeRequest<{ id: string }>(`/customers/${customerId}/cards`, {
     method: "POST",
-    body: JSON.stringify({ token }),
+    body: JSON.stringify({ token, billing_address: billingAddress }),
   });
 }
 
@@ -91,7 +107,9 @@ export async function createOrder(input: {
   return pagarmeRequest<PagarmeOrder>("/orders", {
     method: "POST",
     body: JSON.stringify({
-      items: [{ amount: input.amountCents, description: input.description, quantity: 1 }],
+      items: [
+        { amount: input.amountCents, description: input.description, quantity: 1, code: "assinatura-wp" },
+      ],
       customer_id: input.customerId,
       payments: [
         {
