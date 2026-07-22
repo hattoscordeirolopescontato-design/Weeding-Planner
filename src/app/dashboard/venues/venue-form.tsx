@@ -294,7 +294,7 @@ export function VenueForm({
               onChange={(e) => set("freeGuests", num(e.target.value))}
             />
           </Field>
-          <Field label="Valor por pessoa — inteira (R$)">
+          <Field label="Valor por pessoa inteira (R$)">
             <Input
               type="number"
               min="0"

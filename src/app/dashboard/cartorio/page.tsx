@@ -169,7 +169,7 @@ export default function CartorioPage() {
         <Info size={16} className="mt-0.5 shrink-0 text-[#9C6C3C]" />
         <span>
           Esta seção é <strong>opcional</strong> e serve apenas para organização.
-          Os documentos exigidos podem variar conforme o cartório — confirme
+          Os documentos exigidos podem variar conforme o cartório. Confirme
           sempre com o seu.
         </span>
       </div>
@@ -212,7 +212,7 @@ export default function CartorioPage() {
           <section key={person} className="mb-6">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-display text-xl font-semibold text-[#9C6C3C]">
-                Documentos — {PERSON_LABEL[person]}
+                Documentos: {PERSON_LABEL[person]}
               </h2>
               <Button variant="ghost" onClick={() => addDoc(person)}>
                 <Plus size={15} /> Documento
@@ -295,7 +295,7 @@ export default function CartorioPage() {
             {c.witnesses.map((w, i) => (
               <div key={w.id} className="grid grid-cols-1 gap-3 sm:grid-cols-12">
                 <div className="sm:col-span-6">
-                  <Field label={`Testemunha ${i + 1} — Nome`}>
+                  <Field label={`Nome da testemunha ${i + 1}`}>
                     <Input
                       value={w.name}
                       onChange={(e) => updWitness(w.id, { name: e.target.value })}

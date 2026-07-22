@@ -94,7 +94,7 @@ export default function GiftsPage() {
       "",
       ...available.map(
         (g) =>
-          `• ${g.nome ?? ""}${g.valor ? ` — ${formatCurrency(g.valor)}` : ""}${
+          `• ${g.nome ?? ""}${g.valor ? `: ${formatCurrency(g.valor)}` : ""}${
             g.link ? `\n  ${g.link}` : ""
           }`,
       ),

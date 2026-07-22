@@ -67,7 +67,7 @@ export default function VendorsPage() {
     <div>
       <PageHeader
         title="Fornecedores"
-        subtitle="Buffet, fotografia, decoração — com valores, parcelas e comprovantes."
+        subtitle="Buffet, fotografia e decoração, com valores, parcelas e comprovantes."
       />
       {error && <Card className="mb-4 text-sm text-[#9C6C3C]">Erro: {error}</Card>}
 

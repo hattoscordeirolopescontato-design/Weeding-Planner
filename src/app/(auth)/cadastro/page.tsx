@@ -55,7 +55,7 @@ export default function CadastroPage() {
   return (
     <GoldAuthShell
       tagline="Comece a planejar o seu grande dia."
-      subtitle="Crie sua conta e organize fornecedores, orçamento, convidados, cerimônia e muito mais — em um só lugar."
+      subtitle="Crie sua conta e organize fornecedores, orçamento, convidados, cerimônia e muito mais, tudo em um só lugar."
     >
       <div className="text-center text-3xl font-bold text-[#2B2620]" style={serifStyle}>
         Criar conta

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Handshake, MapPin, Users, Mail } from "lucide-react";
 
 const features = [
-  { icon: Handshake, title: "Fornecedores", desc: "Buffet, foto, decoração — com valores, parcelas e comprovantes." },
+  { icon: Handshake, title: "Fornecedores", desc: "Buffet, foto e decoração, com valores, parcelas e comprovantes." },
   { icon: MapPin, title: "Local", desc: "Compare opções e calcule o custo total automaticamente." },
   { icon: Users, title: "Convidados", desc: "Lista, grupos e confirmação de presença." },
   { icon: Mail, title: "Votos secretos", desc: "Cifrados com a sua senha. Só você lê." },
@@ -124,7 +124,7 @@ export default function Home() {
           </h1>
           <p className="mt-5 max-w-xl text-lg text-[#8a7b63]">
             Reúna fornecedores, local, convidados, agenda, checklist e até seus
-            votos — tudo organizado e seguro, em um só lugar.
+            votos, tudo organizado e seguro em um só lugar.
           </p>
           <Link
             href="/cadastro"
@@ -133,7 +133,7 @@ export default function Home() {
             Começar agora
           </Link>
           <p className="mt-3.5 text-[13.5px] text-[#8a7b63]">
-            <span className="font-bold text-[#2B2620]">R$ 39,90/mês</span> — cancele quando quiser.
+            <span className="font-bold text-[#2B2620]">R$ 39,90/mês</span>. Cancele quando quiser.
           </p>
         </section>
 

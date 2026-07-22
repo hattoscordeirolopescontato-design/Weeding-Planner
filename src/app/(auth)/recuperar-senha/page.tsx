@@ -37,7 +37,7 @@ export default function RecuperarSenhaPage() {
   return (
     <GoldAuthShell
       tagline="Vamos recuperar o seu acesso."
-      subtitle="Sem estresse — enviamos um link e você volta a planejar em instantes."
+      subtitle="Sem estresse. Enviamos um link e você volta a planejar em instantes."
     >
       <div className="text-center text-3xl font-bold text-[#2B2620]" style={serifStyle}>
         Recuperar senha

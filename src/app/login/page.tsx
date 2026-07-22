@@ -43,7 +43,7 @@ export default function LoginPage() {
   return (
     <GoldAuthShell
       tagline="Bem-vinda ao planejamento do seu grande dia."
-      subtitle="Fornecedores, orçamento, convidados e checklist — tudo em um só lugar, exatamente onde você deixou."
+      subtitle="Fornecedores, orçamento, convidados e checklist, tudo em um só lugar, exatamente onde você deixou."
     >
       <div className="text-center text-3xl font-bold text-[#2B2620]" style={serifStyle}>
         Entrar na sua conta

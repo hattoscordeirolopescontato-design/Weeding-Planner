@@ -84,7 +84,7 @@ export default function ChecklistPage() {
       <Card className="mb-6">
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium text-[#2B2620]">
-            Progresso — {OWNER_LABEL[tab]}
+            Progresso: {OWNER_LABEL[tab]}
           </p>
           <p className="text-sm text-[#8a7b63]">
             {done} de {total} ({pct}%)

@@ -190,7 +190,7 @@ export default function GuestsPage() {
         </div>
         <p className="mt-1 text-xs text-[#b7a98c]">
           Considera confirmados e pendentes (recusados não entram).
-          Acompanhantes contam como inteira — é a base usada no cálculo do salão.
+          Acompanhantes contam como inteira. É a base usada no cálculo do salão.
         </p>
       </Card>
 
