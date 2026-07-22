@@ -6,30 +6,38 @@ const STATUS_BY_EVENT: Record<string, string> = {
   "order.paid": "paid",
   "order.payment_failed": "failed",
   "order.canceled": "canceled",
-  "order.refunded": "refunded",
 };
 
-function hasValidSignature(rawBody: string, header: string | null, secret: string): boolean {
-  if (!header) return false;
-  const hash = header.split("=")[1];
-  if (!hash) return false;
+// A Pagar.me v5 (cadastro de webhook pelo painel) não assina o corpo com
+// HMAC — ela autentica via Basic Auth com usuário/senha definidos por nós
+// no próprio painel (Configurações > Webhooks > Habilitar autenticação).
+function hasValidAuth(header: string | null, user: string, pass: string): boolean {
+  if (!header?.startsWith("Basic ")) return false;
+  const decoded = Buffer.from(header.slice(6), "base64").toString("utf8");
+  const [sentUser, sentPass] = decoded.split(":");
+  if (!sentUser || !sentPass) return false;
 
-  const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
-  const expectedBuf = Buffer.from(expected);
-  const hashBuf = Buffer.from(hash);
-  if (expectedBuf.length !== hashBuf.length) return false;
-  return crypto.timingSafeEqual(expectedBuf, hashBuf);
+  const userBuf = Buffer.from(sentUser);
+  const expectedUserBuf = Buffer.from(user);
+  const passBuf = Buffer.from(sentPass);
+  const expectedPassBuf = Buffer.from(pass);
+  const userOk =
+    userBuf.length === expectedUserBuf.length && crypto.timingSafeEqual(userBuf, expectedUserBuf);
+  const passOk =
+    passBuf.length === expectedPassBuf.length && crypto.timingSafeEqual(passBuf, expectedPassBuf);
+  return userOk && passOk;
 }
 
 export async function POST(req: Request) {
   const rawBody = await req.text();
-  const secret = process.env.PAGARME_WEBHOOK_SECRET;
+  const user = process.env.PAGARME_WEBHOOK_USER;
+  const pass = process.env.PAGARME_WEBHOOK_SECRET;
 
-  // Sem o secret ainda configurado (pendente até cadastrar a URL pública no
-  // painel Pagar.me), a assinatura não pode ser checada — só o suficiente
-  // para destravar o desenvolvimento local. Não usar assim em produção.
-  if (secret && !hasValidSignature(rawBody, req.headers.get("x-hub-signature"), secret)) {
-    return NextResponse.json({ error: "Assinatura inválida" }, { status: 400 });
+  // Sem usuário/senha ainda configurados, a autenticação não pode ser
+  // checada — só o suficiente para destravar o desenvolvimento local. Não
+  // usar assim em produção.
+  if (user && pass && !hasValidAuth(req.headers.get("authorization"), user, pass)) {
+    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
   const payload = JSON.parse(rawBody);
