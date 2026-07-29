@@ -135,6 +135,7 @@ export default function AssinarPage() {
 
       if (result.status === "paid") {
         setNotice("Pagamento aprovado! Redirecionando...");
+        router.refresh();
         router.push("/dashboard");
       } else if (result.status === "pending" || result.status === "processing") {
         setNotice("Pagamento em análise. Você será avisado assim que for confirmado.");
